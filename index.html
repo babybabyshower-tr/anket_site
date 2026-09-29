@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yaş ve Meslek Grubuna Göre Parti Desteği: Anket Dizini</title>
+<style>
+:root{--bg:#f3f5f7;--ink:#1c2530;--mute:#5d6b7a;--line:#d5dce3;--card:#fff;--a:#c2410c;--b:#1d4ed8;--hi:#fff4e5}
+@media(prefers-color-scheme:dark){:root{--bg:#12171d;--ink:#e6ebf0;--mute:#93a1b0;--line:#2a3541;--card:#1a222b;--a:#fb923c;--b:#60a5fa;--hi:#2a2016}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Georgia,"Times New Roman",serif}
+main{max-width:920px;margin:0 auto;padding:32px 18px 64px}
+h1{font-size:clamp(1.6rem,4vw,2.3rem);line-height:1.2;margin:0 0 8px}
+h2{font-size:1.15rem;margin:36px 0 12px}
+p{margin:0 0 10px}
+.lead{color:var(--mute);max-width:64ch}
+.sans,button,table,.tag{font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+.legend{display:flex;gap:16px;font:.85rem system-ui,sans-serif;color:var(--mute);margin:14px 0}
+.dot{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:baseline}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0}
+button{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:7px 14px;border-radius:6px;cursor:pointer;font-size:.9rem}
+button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button:focus-visible,a:focus-visible{outline:3px solid var(--b);outline-offset:2px}
+.top{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.top div{border-left:4px solid var(--a);background:var(--hi);padding:12px 14px}
+.top b{display:block;font-size:1.5rem;font-family:system-ui,sans-serif}
+.top small{color:var(--mute);font-family:system-ui,sans-serif}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:18px;margin-bottom:16px}
+.card h3{margin:0 0 4px;font-size:1.05rem}
+.meta{font:.82rem system-ui,sans-serif;color:var(--mute);margin-bottom:12px}
+.tag{font-size:.75rem;border:1px solid var(--line);border-radius:4px;padding:1px 6px;margin-right:6px}
+.row{display:grid;grid-template-columns:130px 1fr;gap:10px;align-items:center;margin:8px 0;font:.9rem system-ui,sans-serif}
+.bar{display:flex;align-items:center;gap:8px;margin:2px 0}
+.bar i{display:block;height:14px;border-radius:2px;min-width:2px}
+.bar span{font-variant-numeric:tabular-nums}
+.note{font:.85rem system-ui,sans-serif;background:var(--bg);padding:8px 10px;border-radius:6px;margin:10px 0 0}
+.src{display:inline-block;margin-top:10px;font:.9rem system-ui,sans-serif;color:var(--b);overflow-wrap:anywhere}
+.tblwrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.88rem;background:var(--card)}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+td.n{text-align:right;font-variant-numeric:tabular-nums}
+.warn{font:.88rem system-ui,sans-serif;color:var(--mute);border-top:1px solid var(--line);margin-top:32px;padding-top:14px}
+@media(max-width:520px){.row{grid-template-columns:1fr;gap:2px}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Yaş ve meslek grubuna göre parti desteği</h1>
+  <p class="lead">Kamuoyu araştırmalarından derlenen yaş ve emekli kırılımları. Her anketin kaynak bağlantısı kartında yer alır. Veriler <code>data.js</code> dosyasından okunur.</p>
+
+  <div class="legend" aria-hidden="true">
+    <span><i class="dot" style="background:var(--a)"></i>AKP (cumhurbaşkanlığı anketlerinde Erdoğan)</span>
+    <span><i class="dot" style="background:var(--b)"></i>CHP (cumhurbaşkanlığı anketlerinde İmamoğlu)</span>
+  </div>
+
+  <h2>Öne çıkanlar</h2>
+  <div class="top" id="top"></div>
+
+  <h2>Anketler</h2>
+  <div class="filters" role="group" aria-label="Filtre">
+    <button data-f="all" aria-pressed="true">Tümü</button>
+    <button data-f="age" aria-pressed="false">Yaş kırılımı</button>
+    <button data-f="occupation" aria-pressed="false">Emekli</button>
+    <button data-f="president" aria-pressed="false">Cumhurbaşkanlığı</button>
+  </div>
+  <div id="list"></div>
+
+  <h2>Tüm gruplar, AKP/Erdoğan desteğine göre</h2>
+  <div class="tblwrap"><table id="rank"></table></div>
+
+  <p class="warn">Uyarı: Anketlerin şirketi, tarihi, örneklemi ve yaş aralıkları birbirinden farklıdır; grupları aynı tabloda sıralamak doğrudan karşılaştırma değil, özet bir görünümdür. "65 yaş üstü" ile "emekli" aynı küme değildir. Öğrenci kırılımı bu kaynaklarda bulunmadığı için gösterilemiyor.</p>
+</main>
+<script src="data.js"></script>
+<script>
+const fmt = v => v.toFixed(1).replace('.', ',') + '%';
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const dateTR = d => d ? new Date(d).toLocaleDateString('tr-TR', {year:'numeric', month:'long', day:'numeric'}) : 'Tarih yok';
+const aName = s => s.type === 'president' ? 'Erdoğan' : 'AKP';
+
+// tüm segmentleri düzleştir
+const flat = SURVEYS.flatMap(s => s.segments.map(g => ({...g, s})));
+const best = arr => arr.reduce((m, x) => (!m || x.a > m.a) ? x : m, null);
+
+function topCards() {
+  const items = [
+    ['Parti anketlerinde, yaş gruplarında en yüksek AKP', best(flat.filter(x => x.kind === 'age' && x.s.type === 'party'))],
+    ['Cumhurbaşkanlığı anketinde, yaş gruplarında en yüksek Erdoğan', best(flat.filter(x => x.kind === 'age' && x.s.type === 'president'))],
+    ['Emekliler arasında en yüksek AKP', best(flat.filter(x => x.kind === 'occupation'))]
+  ];
+  document.getElementById('top').innerHTML = items.map(([t, x]) => x
+    ? `<div><small>${t}</small><b>${fmt(x.a)}</b>${esc(x.label)}<br><small>${esc(x.s.pollster)}, ${dateTR(x.s.date)}</small></div>`
+    : '').join('');
+}
+
+function card(s) {
+  const bars = s.segments.map(g => `
+    <div class="row"><div>${esc(g.label)}</div><div>
+      <div class="bar"><i style="width:${g.a * 2}%;background:var(--a)"></i><span>${aName(s)} ${fmt(g.a)}</span></div>
+      <div class="bar"><i style="width:${g.b * 2}%;background:var(--b)"></i><span>${esc(s.bLabel)} ${fmt(g.b)}</span></div>
+    </div></div>`).join('') || '<p class="note">Bu anketten henüz veri çıkarılamadı.</p>';
+  const lead = s.segments.length ? best(s.segments) : null;
+  return `<article class="card">
+    <h3>${esc(s.title)}</h3>
+    <div class="meta"><span class="tag">${esc(s.pollster)}</span>${dateTR(s.date)}${s.n ? ' · ' + s.n.toLocaleString('tr-TR') + ' kişi' : ''} · Saha: ${esc(s.fieldwork)}</div>
+    ${bars}
+    ${lead && s.segments.length > 1 ? `<p class="meta">${aName(s)} desteğinin en yüksek olduğu grup: <b>${esc(lead.label)}</b> (${fmt(lead.a)})</p>` : ''}
+    ${s.note ? `<div class="note">${esc(s.note)}</div>` : ''}
+    <a class="src" href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">Kaynak: ${esc(s.source)}</a>
+  </article>`;
+}
+
+function render(f) {
+  const list = SURVEYS.filter(s => f === 'all' || (f === 'president' ? s.type === 'president' : s.segments.some(g => g.kind === f)) || (f !== 'all' && !s.segments.length && f === 'occupation'));
+  document.getElementById('list').innerHTML = list.map(card).join('');
+}
+
+function rank() {
+  const rows = [...flat].sort((x, y) => y.a - x.a).map(x => `<tr>
+    <td>${esc(x.label)}</td><td>${esc(x.s.pollster)}</td><td>${dateTR(x.s.date)}</td>
+    <td>${x.s.type === 'president' ? 'Cumhurbaşkanlığı' : 'Parti oyu'}</td>
+    <td class="n">${fmt(x.a)}</td><td class="n">${fmt(x.b)}</td></tr>`).join('');
+  document.getElementById('rank').innerHTML =
+    '<tr><th>Grup</th><th>Anket</th><th>Tarih</th><th>Soru</th><th>AKP / Erdoğan</th><th>CHP / İmamoğlu</th></tr>' + rows;
+}
+
+document.querySelectorAll('.filters button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.filters button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  render(b.dataset.f);
+}));
+topCards(); render('all'); rank();
+</script>
+</body>
+</html>
